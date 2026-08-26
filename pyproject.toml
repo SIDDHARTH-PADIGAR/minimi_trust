@@ -15,6 +15,13 @@ dependencies = [
 dev = [
     "pytest>=8.0",
 ]
+llm = [
+    "requests>=2.31",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["data", ".venv", "*.egg-info", "build", "dist"]

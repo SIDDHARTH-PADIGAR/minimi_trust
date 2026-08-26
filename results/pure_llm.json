@@ -1,0 +1,64 @@
+{
+  "baseline_name": "pure_llm",
+  "total": 8,
+  "correct": 2,
+  "accuracy": 0.25,
+  "results": [
+    {
+      "scenario_id": "t2_001",
+      "category": "temporal_contradiction",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_002",
+      "category": "stale_fact_uncontradicted",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_003",
+      "category": "explicit_correction",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_004",
+      "category": "repeated_redundant_observation",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_005",
+      "category": "conflicting_sources_same_timestamp",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": true
+    },
+    {
+      "scenario_id": "t2_006",
+      "category": "multi_fact_derivation_chain",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_007",
+      "category": "paraphrase_indirect_contradiction",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": true
+    },
+    {
+      "scenario_id": "t2_008",
+      "category": "late_arriving_backfilled_fact",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    }
+  ]
+}

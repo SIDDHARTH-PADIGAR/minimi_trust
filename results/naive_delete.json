@@ -1,0 +1,43 @@
+{
+  "baseline_name": "naive_delete",
+  "total": 5,
+  "correct": 1,
+  "accuracy": 0.2,
+  "results": [
+    {
+      "scenario_id": "del_001",
+      "category": "deletion_with_residual",
+      "predicted_verification_result": "verified_deleted",
+      "expected_verification_result": "residual_risk_found",
+      "correct": false
+    },
+    {
+      "scenario_id": "del_002",
+      "category": "deletion_with_residual",
+      "predicted_verification_result": "verified_deleted",
+      "expected_verification_result": "residual_risk_found",
+      "correct": false
+    },
+    {
+      "scenario_id": "del_003",
+      "category": "deletion_clean",
+      "predicted_verification_result": "verified_deleted",
+      "expected_verification_result": "verified_deleted",
+      "correct": true
+    },
+    {
+      "scenario_id": "del_004",
+      "category": "deletion_with_residual",
+      "predicted_verification_result": "verified_deleted",
+      "expected_verification_result": "residual_risk_found",
+      "correct": false
+    },
+    {
+      "scenario_id": "del_005",
+      "category": "deletion_incomplete_primary",
+      "predicted_verification_result": "verified_deleted",
+      "expected_verification_result": "deletion_incomplete",
+      "correct": false
+    }
+  ]
+}
