@@ -1,0 +1,1 @@
+"""Deterministic Conflict Detector (M2) — timestamp/versioning logic only."""
