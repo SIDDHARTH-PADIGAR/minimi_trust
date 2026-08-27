@@ -1,0 +1,90 @@
+{
+  "baseline_name": "m5_deletion_verification_engine",
+  "total": 6,
+  "correct": 6,
+  "accuracy": 1.0,
+  "results": [
+    {
+      "scenario_id": "del_001",
+      "category": "dependent_fact_trackable",
+      "predicted_verification_result": "verified_deleted",
+      "predicted_residual_recoverability_score": 0.0,
+      "cascade_trace": [
+        {
+          "kind": "dependent_fact",
+          "ref": "onboarding_note_003",
+          "note": "referenced the old contact email [found and neutralized]"
+        }
+      ],
+      "correct": true
+    },
+    {
+      "scenario_id": "del_002",
+      "category": "embedding_index_untrackable",
+      "predicted_verification_result": "residual_risk_found",
+      "predicted_residual_recoverability_score": 1.0,
+      "cascade_trace": [
+        {
+          "kind": "embedding_index",
+          "ref": "emb_meeting_transcript_009",
+          "note": "vector index entry created at ingestion [detected, not purgeable by this engine]"
+        }
+      ],
+      "correct": true
+    },
+    {
+      "scenario_id": "del_003",
+      "category": "deletion_clean",
+      "predicted_verification_result": "verified_deleted",
+      "predicted_residual_recoverability_score": 0.0,
+      "cascade_trace": [],
+      "correct": true
+    },
+    {
+      "scenario_id": "del_004",
+      "category": "mixed_trackable_and_untrackable",
+      "predicted_verification_result": "residual_risk_found",
+      "predicted_residual_recoverability_score": 0.5,
+      "cascade_trace": [
+        {
+          "kind": "dependent_fact",
+          "ref": "comp_summary_018",
+          "note": "derived summary fact built from this note [found and neutralized]"
+        },
+        {
+          "kind": "embedding_index",
+          "ref": "emb_salary_note_017",
+          "note": "vector index entry [detected, not purgeable by this engine]"
+        }
+      ],
+      "correct": true
+    },
+    {
+      "scenario_id": "del_005",
+      "category": "primary_deletion_failure",
+      "predicted_verification_result": "deletion_incomplete",
+      "predicted_residual_recoverability_score": null,
+      "cascade_trace": [],
+      "correct": true
+    },
+    {
+      "scenario_id": "del_006",
+      "category": "multiple_untrackable_artifacts",
+      "predicted_verification_result": "residual_risk_found",
+      "predicted_residual_recoverability_score": 1.0,
+      "cascade_trace": [
+        {
+          "kind": "embedding_index",
+          "ref": "emb_voice_memo_040a",
+          "note": "vector index entry [detected, not purgeable by this engine]"
+        },
+        {
+          "kind": "index_entry",
+          "ref": "search_cache_040b",
+          "note": "search result cache entry [detected, not purgeable by this engine]"
+        }
+      ],
+      "correct": true
+    }
+  ]
+}

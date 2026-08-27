@@ -33,6 +33,6 @@ def test_baselines_diverge_on_backfilled_scenario():
 
 def test_naive_delete_runs():
     scenarios = list(load_deletion_scenarios(DEFAULT_DELETION_PATH))
-    assert len(scenarios) == 5
+    assert len(scenarios) == 6
     predictions = [naive_delete_predict(s) for s in scenarios]
     assert all(p == "verified_deleted" for p in predictions)

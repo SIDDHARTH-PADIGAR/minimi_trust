@@ -1,0 +1,1 @@
+"""Deletion + Verification Engine (M5, §2 Control Plane / §3 / §4 verify_deletion)."""

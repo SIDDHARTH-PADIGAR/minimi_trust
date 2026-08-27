@@ -12,7 +12,8 @@
       "predicted_unresolved": false,
       "predicted_object": "2026-09-15",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_002",
@@ -20,7 +21,8 @@
       "predicted_unresolved": false,
       "predicted_object": "engineering_manager",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_003",
@@ -28,7 +30,8 @@
       "predicted_unresolved": false,
       "predicted_object": "j.smith@acmecorp.com",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_004",
@@ -36,7 +39,8 @@
       "predicted_unresolved": false,
       "predicted_object": "9:30am_PT",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_005",
@@ -44,7 +48,8 @@
       "predicted_unresolved": true,
       "predicted_object": null,
       "escalated": true,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_006",
@@ -52,7 +57,8 @@
       "predicted_unresolved": false,
       "predicted_object": "2026-11-15",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_007",
@@ -60,7 +66,8 @@
       "predicted_unresolved": false,
       "predicted_object": "2026-08-28",
       "escalated": false,
-      "correct": false
+      "correct": false,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_008",
@@ -68,7 +75,8 @@
       "predicted_unresolved": false,
       "predicted_object": "renewed_through_2027",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_009",
@@ -76,7 +84,8 @@
       "predicted_unresolved": false,
       "predicted_object": "director_of_engineering",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_010",
@@ -84,7 +93,8 @@
       "predicted_unresolved": false,
       "predicted_object": "hunter2",
       "escalated": false,
-      "correct": true
+      "correct": true,
+      "llm_raw_response": null
     },
     {
       "scenario_id": "t2_011",
@@ -92,7 +102,8 @@
       "predicted_unresolved": true,
       "predicted_object": null,
       "escalated": true,
-      "correct": false
+      "correct": false,
+      "llm_raw_response": null
     }
   ]
 }

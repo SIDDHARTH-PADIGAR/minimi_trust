@@ -40,6 +40,7 @@ def run_m4(track2_path=DEFAULT_TRACK2_PATH) -> dict:
             "scenario_id": scenario.scenario_id, "category": scenario.category,
             "predicted_unresolved": result.unresolved, "predicted_object": result.winning_object,
             "escalated": result.escalated, "correct": is_correct,
+            "llm_raw_response": result.llm_raw_response,
         })
 
     total = len(scenarios)

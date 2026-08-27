@@ -1,42 +1,43 @@
 {
   "baseline_name": "naive_delete",
-  "total": 5,
-  "correct": 1,
-  "accuracy": 0.2,
+  "total": 6,
+  "correct": 2,
+  "accuracy": 0.3333333333333333,
   "results": [
     {
       "scenario_id": "del_001",
-      "category": "deletion_with_residual",
+      "category": "dependent_fact_trackable",
       "predicted_verification_result": "verified_deleted",
-      "expected_verification_result": "residual_risk_found",
-      "correct": false
+      "correct": true
     },
     {
       "scenario_id": "del_002",
-      "category": "deletion_with_residual",
+      "category": "embedding_index_untrackable",
       "predicted_verification_result": "verified_deleted",
-      "expected_verification_result": "residual_risk_found",
       "correct": false
     },
     {
       "scenario_id": "del_003",
       "category": "deletion_clean",
       "predicted_verification_result": "verified_deleted",
-      "expected_verification_result": "verified_deleted",
       "correct": true
     },
     {
       "scenario_id": "del_004",
-      "category": "deletion_with_residual",
+      "category": "mixed_trackable_and_untrackable",
       "predicted_verification_result": "verified_deleted",
-      "expected_verification_result": "residual_risk_found",
       "correct": false
     },
     {
       "scenario_id": "del_005",
-      "category": "deletion_incomplete_primary",
+      "category": "primary_deletion_failure",
       "predicted_verification_result": "verified_deleted",
-      "expected_verification_result": "deletion_incomplete",
+      "correct": false
+    },
+    {
+      "scenario_id": "del_006",
+      "category": "multiple_untrackable_artifacts",
+      "predicted_verification_result": "verified_deleted",
       "correct": false
     }
   ]
