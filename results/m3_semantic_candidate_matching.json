@@ -1,8 +1,8 @@
 {
-  "baseline_name": "m2_deterministic_conflict_detection",
+  "baseline_name": "m3_semantic_candidate_matching",
   "total": 10,
-  "correct": 8,
-  "accuracy": 0.8,
+  "correct": 9,
+  "accuracy": 0.9,
   "results": [
     {
       "scenario_id": "t2_001",
@@ -64,8 +64,8 @@
       "scenario_id": "t2_009",
       "category": "cross_phrased_same_subject",
       "predicted_unresolved": false,
-      "predicted_object": "engineering_manager",
-      "correct": false
+      "predicted_object": "director_of_engineering",
+      "correct": true
     },
     {
       "scenario_id": "t2_010",

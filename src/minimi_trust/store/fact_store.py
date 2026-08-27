@@ -130,6 +130,10 @@ class FactStore:
         ).fetchall()
         return [_row_to_fact(r) for r in rows]
 
+    def get_distinct_subject_predicate_pairs(self) -> list[tuple[str, str]]:
+        rows = self._conn.execute("SELECT DISTINCT subject, predicate FROM facts").fetchall()
+        return [(r["subject"], r["predicate"]) for r in rows]
+
     def get_events(self, event_type: Optional[str] = None) -> list[dict]:
         if event_type:
             rows = self._conn.execute(

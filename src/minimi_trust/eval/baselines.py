@@ -18,30 +18,46 @@ from minimi_trust.eval.deletion_loader import DeletionScenario
 from minimi_trust.eval.loader import Scenario
 
 # --------------------------------------------------------------------------
-# Baseline 1 - naive overwrite (last-write-wins, no conflict detection)
+# Baseline 1 — naive overwrite (last-write-wins, no conflict detection)
 # --------------------------------------------------------------------------
 
 def naive_overwrite_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
-    """Presumed default of a flat vector store: whichever fact was
-    ingested last simply overwrites, with no timestamp or ambiguity check."""
-    return False, scenario.facts[-1].object
+    """Presumed default of a flat vector store: exact subject+predicate
+    lookup, whichever matching fact was ingested last simply overwrites,
+    with no timestamp or ambiguity check. Facts under a different
+    subject/predicate in the same scenario are correctly ignored — a
+    real exact-match system wouldn't know they're related either."""
+    matching = [
+        f for f in scenario.facts
+        if f.subject == scenario.query.subject and f.predicate == scenario.query.predicate
+    ]
+    if not matching:
+        return True, None
+    return False, matching[-1].object
 
 
 # --------------------------------------------------------------------------
-# Baseline 3 - pure deterministic, timestamp-only
+# Baseline 3 — pure deterministic, timestamp-only
 # --------------------------------------------------------------------------
 
 def pure_deterministic_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
-    """Newest observed_at always wins. No semantic candidate matching,
-    no ambiguity detection - same-timestamp conflicts still get a forced
-    (possibly wrong) guess, which is exactly the weakness this baseline
-    is meant to expose."""
-    newest = max(scenario.facts, key=lambda f: f.observed_at)
+    """Newest observed_at among exact subject+predicate matches always
+    wins. No semantic candidate matching, no ambiguity detection —
+    same-timestamp conflicts still get a forced (possibly wrong) guess,
+    and a newer fact filed under a differently-phrased subject is
+    invisible to it, exactly as §6 predicts this baseline should fail."""
+    matching = [
+        f for f in scenario.facts
+        if f.subject == scenario.query.subject and f.predicate == scenario.query.predicate
+    ]
+    if not matching:
+        return True, None
+    newest = max(matching, key=lambda f: f.observed_at)
     return False, newest.object
 
 
 # --------------------------------------------------------------------------
-# Baseline 2 - pure LLM-mediated resolution (via OpenRouter)
+# Baseline 2 — pure LLM-mediated resolution (via OpenRouter)
 # --------------------------------------------------------------------------
 
 _LLM_SYSTEM_PROMPT = """You are given a set of timestamped candidate facts about the same subject and predicate, drawn from an ambient memory system. Decide which one is currently true, if any single one clearly is.
@@ -70,7 +86,7 @@ def make_pure_llm_resolver(model: Optional[str] = None):
     Factory so run_baselines.py can construct this resolver lazily and
     catch a missing OPENROUTER_API_KEY without failing at module import
     time. Talks to OpenRouter's OpenAI-compatible endpoint directly via
-    `requests` - no vendor SDK needed.
+    `requests` — no vendor SDK needed.
     """
     import requests
 
@@ -132,11 +148,11 @@ def make_pure_llm_resolver(model: Optional[str] = None):
 
 
 # --------------------------------------------------------------------------
-# Baseline 4 - naive delete (unconditional success, no cascade check)
+# Baseline 4 — naive delete (unconditional success, no cascade check)
 # --------------------------------------------------------------------------
 
 def naive_delete_predict(scenario: DeletionScenario) -> str:
-    """Removes the primary record and reports success unconditionally -
+    """Removes the primary record and reports success unconditionally —
     no cascade trace, no residual check. This is the direct analog of
     what MemLeak found real production systems do."""
     return "verified_deleted"

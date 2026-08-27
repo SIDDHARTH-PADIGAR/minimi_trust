@@ -2,14 +2,13 @@
 Deterministic Conflict Detector (M2, §2 Control Plane).
 
 Timestamp/versioning logic, subject+predicate exact matching. No
-embeddings, no semantic candidate matching (M3), no LLM arbitration (M4).
+embeddings, no semantic candidate matching (that's M3 — see
+semantic_detector.py, which reuses resolve_facts() below unchanged),
+no LLM arbitration (M4).
 
-Differences from baseline 3 (pure_deterministic_resolver in eval/baselines.py):
-same-object "conflicts" (redundant re-observations) are recognized as
-non-conflicts rather than arbitrarily re-picked, and genuine same-timestamp
-conflicts between DIFFERENT objects are reported unresolved rather than
-forced to a guess. Every real resolution is written to the Fact Store as
-a supersession — losing facts are marked superseded, never deleted.
+resolve_conflict() and resolve_facts() are split so M3 can hand this
+class a broader, similarity-matched fact list without duplicating or
+changing the resolution algorithm itself.
 """
 
 from __future__ import annotations
@@ -38,7 +37,10 @@ class ConflictDetector:
         self.store = store
 
     def resolve_conflict(self, subject: str, predicate: str) -> ConflictResolution:
-        all_facts = self.store.get_facts(subject, predicate)
+        facts = self.store.get_facts(subject, predicate)
+        return self.resolve_facts(subject, predicate, facts)
+
+    def resolve_facts(self, subject: str, predicate: str, all_facts: list[Fact]) -> ConflictResolution:
         active = [f for f in all_facts if f.status == FactStatus.ACTIVE]
 
         if not active:
@@ -58,7 +60,6 @@ class ConflictDetector:
         distinct_objects = {f.object for f in active}
 
         if len(distinct_objects) == 1:
-            # Redundant re-observations, not a real conflict.
             winner = max(active, key=lambda f: (f.observed_at, f.extracted_at, f.id))
             losers = [f for f in active if f.id != winner.id]
             self._consolidate(subject, predicate, winner, losers, reason="redundant_consolidation")
@@ -69,13 +70,11 @@ class ConflictDetector:
                 reason="identical object across all active facts — consolidated, not a conflict",
             )
 
-        # Genuine conflict: differing objects.
         max_observed_at = max(f.observed_at for f in active)
         at_max = [f for f in active if f.observed_at == max_observed_at]
         objects_at_max = {f.object for f in at_max}
 
         if len(objects_at_max) > 1:
-            # Same-timestamp, different-object — not a forced guess.
             return ConflictResolution(
                 subject=subject, predicate=predicate, winning_fact=None,
                 resolution_method=ResolutionMethod.UNRESOLVED, unresolved=True,
