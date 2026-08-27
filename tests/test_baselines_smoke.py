@@ -15,19 +15,17 @@ from minimi_trust.eval.harness import DEFAULT_TRACK2_PATH, run
 
 def test_naive_overwrite_runs():
     report = run(track2_path=DEFAULT_TRACK2_PATH, resolver=naive_overwrite_resolver, baseline_name="naive_overwrite")
-    assert report.total == 10
+    assert report.total == 11
     assert 0.0 <= report.accuracy <= 1.0
 
 
 def test_pure_deterministic_runs():
     report = run(track2_path=DEFAULT_TRACK2_PATH, resolver=pure_deterministic_resolver, baseline_name="pure_deterministic")
-    assert report.total == 10
+    assert report.total == 11
     assert 0.0 <= report.accuracy <= 1.0
 
 
 def test_baselines_diverge_on_backfilled_scenario():
-    """t2_008 exists specifically so these two baselines disagree — if
-    this ever fails, the dataset stopped exercising the distinction."""
     overwrite = run(track2_path=DEFAULT_TRACK2_PATH, resolver=naive_overwrite_resolver, baseline_name="naive_overwrite")
     deterministic = run(track2_path=DEFAULT_TRACK2_PATH, resolver=pure_deterministic_resolver, baseline_name="pure_deterministic")
     assert overwrite.accuracy != deterministic.accuracy

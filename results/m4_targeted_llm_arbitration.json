@@ -1,14 +1,17 @@
 {
-  "baseline_name": "m3_semantic_candidate_matching",
+  "baseline_name": "m4_targeted_llm_arbitration",
   "total": 11,
   "correct": 9,
   "accuracy": 0.8181818181818182,
+  "escalated_count": 2,
+  "escalation_rate": 0.18181818181818182,
   "results": [
     {
       "scenario_id": "t2_001",
       "category": "temporal_contradiction",
       "predicted_unresolved": false,
       "predicted_object": "2026-09-15",
+      "escalated": false,
       "correct": true
     },
     {
@@ -16,6 +19,7 @@
       "category": "stale_fact_uncontradicted",
       "predicted_unresolved": false,
       "predicted_object": "engineering_manager",
+      "escalated": false,
       "correct": true
     },
     {
@@ -23,6 +27,7 @@
       "category": "explicit_correction",
       "predicted_unresolved": false,
       "predicted_object": "j.smith@acmecorp.com",
+      "escalated": false,
       "correct": true
     },
     {
@@ -30,6 +35,7 @@
       "category": "repeated_redundant_observation",
       "predicted_unresolved": false,
       "predicted_object": "9:30am_PT",
+      "escalated": false,
       "correct": true
     },
     {
@@ -37,6 +43,7 @@
       "category": "conflicting_sources_same_timestamp",
       "predicted_unresolved": true,
       "predicted_object": null,
+      "escalated": true,
       "correct": true
     },
     {
@@ -44,6 +51,7 @@
       "category": "multi_fact_derivation_chain",
       "predicted_unresolved": false,
       "predicted_object": "2026-11-15",
+      "escalated": false,
       "correct": true
     },
     {
@@ -51,6 +59,7 @@
       "category": "paraphrase_indirect_contradiction",
       "predicted_unresolved": false,
       "predicted_object": "2026-08-28",
+      "escalated": false,
       "correct": false
     },
     {
@@ -58,6 +67,7 @@
       "category": "late_arriving_backfilled_fact",
       "predicted_unresolved": false,
       "predicted_object": "renewed_through_2027",
+      "escalated": false,
       "correct": true
     },
     {
@@ -65,6 +75,7 @@
       "category": "cross_phrased_same_subject",
       "predicted_unresolved": false,
       "predicted_object": "director_of_engineering",
+      "escalated": false,
       "correct": true
     },
     {
@@ -72,6 +83,7 @@
       "category": "distinct_unrelated_subjects_not_merged",
       "predicted_unresolved": false,
       "predicted_object": "hunter2",
+      "escalated": false,
       "correct": true
     },
     {
@@ -79,6 +91,7 @@
       "category": "same_timestamp_tie_with_distinguishing_content",
       "predicted_unresolved": true,
       "predicted_object": null,
+      "escalated": true,
       "correct": false
     }
   ]

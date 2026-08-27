@@ -1,8 +1,8 @@
 {
   "baseline_name": "pure_llm",
-  "total": 8,
+  "total": 11,
   "correct": 2,
-  "accuracy": 0.25,
+  "accuracy": 0.18181818181818182,
   "results": [
     {
       "scenario_id": "t2_001",
@@ -56,6 +56,27 @@
     {
       "scenario_id": "t2_008",
       "category": "late_arriving_backfilled_fact",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_009",
+      "category": "cross_phrased_same_subject",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_010",
+      "category": "distinct_unrelated_subjects_not_merged",
+      "predicted_unresolved": true,
+      "predicted_object": null,
+      "correct": false
+    },
+    {
+      "scenario_id": "t2_011",
+      "category": "same_timestamp_tie_with_distinguishing_content",
       "predicted_unresolved": true,
       "predicted_object": null,
       "correct": false

@@ -11,11 +11,12 @@ from __future__ import annotations
 
 import json
 import os
-import time
 from typing import Optional
 
 from minimi_trust.eval.deletion_loader import DeletionScenario
 from minimi_trust.eval.loader import Scenario
+from minimi_trust.llm.openrouter_client import call_openrouter_chat
+from minimi_trust.llm.prompts import CONFLICT_ARBITRATION_SYSTEM_PROMPT, format_facts_for_arbitration
 
 # --------------------------------------------------------------------------
 # Baseline 1 — naive overwrite (last-write-wins, no conflict detection)
@@ -24,9 +25,7 @@ from minimi_trust.eval.loader import Scenario
 def naive_overwrite_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
     """Presumed default of a flat vector store: exact subject+predicate
     lookup, whichever matching fact was ingested last simply overwrites,
-    with no timestamp or ambiguity check. Facts under a different
-    subject/predicate in the same scenario are correctly ignored — a
-    real exact-match system wouldn't know they're related either."""
+    with no timestamp or ambiguity check."""
     matching = [
         f for f in scenario.facts
         if f.subject == scenario.query.subject and f.predicate == scenario.query.predicate
@@ -42,10 +41,7 @@ def naive_overwrite_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
 
 def pure_deterministic_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
     """Newest observed_at among exact subject+predicate matches always
-    wins. No semantic candidate matching, no ambiguity detection —
-    same-timestamp conflicts still get a forced (possibly wrong) guess,
-    and a newer fact filed under a differently-phrased subject is
-    invisible to it, exactly as §6 predicts this baseline should fail."""
+    wins. No semantic candidate matching, no ambiguity detection."""
     matching = [
         f for f in scenario.facts
         if f.subject == scenario.query.subject and f.predicate == scenario.query.predicate
@@ -60,86 +56,45 @@ def pure_deterministic_resolver(scenario: Scenario) -> tuple[bool, Optional[str]
 # Baseline 2 — pure LLM-mediated resolution (via OpenRouter)
 # --------------------------------------------------------------------------
 
-_LLM_SYSTEM_PROMPT = """You are given a set of timestamped candidate facts about the same subject and predicate, drawn from an ambient memory system. Decide which one is currently true, if any single one clearly is.
-
-Respond with ONLY a JSON object, no other text, in this exact shape:
-{"winning_object": "<the object string of the fact that is currently true, or null>", "unresolved": <true if genuinely ambiguous, false otherwise>}
-"""
-
-
-def _format_facts_for_llm(scenario: Scenario) -> str:
-    lines = []
-    for f in scenario.facts:
-        lines.append(
-            f"- object={f.object!r} observed_at={f.observed_at.isoformat()} "
-            f"source={f.source_document_id} confidence={f.confidence}"
-        )
-    return (
-        f"Subject: {scenario.query.subject}\n"
-        f"Predicate: {scenario.query.predicate}\n"
-        f"Candidates:\n" + "\n".join(lines)
-    )
-
-
 def make_pure_llm_resolver(model: Optional[str] = None):
     """
-    Factory so run_baselines.py can construct this resolver lazily and
-    catch a missing OPENROUTER_API_KEY without failing at module import
-    time. Talks to OpenRouter's OpenAI-compatible endpoint directly via
-    `requests` — no vendor SDK needed.
-    """
-    import requests
+    Ask the LLM directly which fact is currently true, no deterministic
+    scaffolding — §6 baseline 2. Uses the same OpenRouter client and
+    prompt as M4's targeted arbitration (llm/openrouter_client.py,
+    llm/prompts.py), so the two are a fair comparison of WHEN the LLM is
+    consulted, not HOW.
 
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
+    Two changes from the original M1 version, both disclosed rather than
+    silently made:
+    1. The prompt now includes each fact's raw_text where present — that
+       text is part of a fact's actual content, not deterministic
+       scaffolding, so including it is a fairer test, but a re-run will
+       not exactly reproduce the M1 number.
+    2. Facts are now filtered to the query's exact subject+predicate
+       before being sent — the same filtering bug fixed for the other
+       two baselines at M3 was present here too but missed at the time.
+    """
+    if not os.environ.get("OPENROUTER_API_KEY"):
         raise RuntimeError("OPENROUTER_API_KEY not set")
 
-    model_name = model or os.environ.get("MINIMI_LLM_MODEL", "openrouter/free")
-
-    session = requests.Session()
-    session.headers.update(
-        {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": os.environ.get("OPENROUTER_SITE_URL", "https://github.com/minimi-trust-layer"),
-            "X-Title": os.environ.get("OPENROUTER_APP_NAME", "minimi-trust-layer-eval"),
-        }
-    )
-
-    def _call(scenario: Scenario, retry: bool = True) -> dict:
-        resp = session.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            json={
-                "model": model_name,
-                "temperature": 0,
-                "messages": [
-                    {"role": "system", "content": _LLM_SYSTEM_PROMPT},
-                    {"role": "user", "content": _format_facts_for_llm(scenario)},
-                ],
-            },
-            timeout=30,
-        )
-        if resp.status_code == 429 and retry:
-            time.sleep(3)
-            return _call(scenario, retry=False)
-        resp.raise_for_status()
-        return resp.json()
-
     def pure_llm_resolver(scenario: Scenario) -> tuple[bool, Optional[str]]:
-        try:
-            data = _call(scenario)
-            text = data["choices"][0]["message"]["content"].strip()
-        except Exception:
+        matching = [
+            f for f in scenario.facts
+            if f.subject == scenario.query.subject and f.predicate == scenario.query.predicate
+        ]
+        if not matching:
             return True, None
 
-        if text.startswith("```"):
-            text = text.strip("`")
-            if text.lower().startswith("json"):
-                text = text[4:].strip()
-
+        prompt_content = format_facts_for_arbitration(scenario.query.subject, scenario.query.predicate, matching)
         try:
+            raw = call_openrouter_chat(CONFLICT_ARBITRATION_SYSTEM_PROMPT, prompt_content, model=model)
+            text = raw.strip()
+            if text.startswith("```"):
+                text = text.strip("`")
+                if text.lower().startswith("json"):
+                    text = text[4:].strip()
             parsed = json.loads(text)
-        except json.JSONDecodeError:
+        except Exception:
             return True, None
 
         return bool(parsed.get("unresolved", False)), parsed.get("winning_object")
