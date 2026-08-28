@@ -152,6 +152,7 @@ python -m minimi_trust.mcp_server.server
 
 ## Repository structure
 
+```text
 src/
 └── minimi_trust/
     ├── schemas.py
@@ -189,7 +190,7 @@ src/
     └── tests/
         ├── Regression suite per milestone
         └── M7 hardening tests
-
+```
 
 ## Resume-claim language
 
