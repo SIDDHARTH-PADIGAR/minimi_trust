@@ -1,0 +1,1 @@
+"""Recall Plane + Explain layer (M6, §2/§4 explain_retrieval)."""

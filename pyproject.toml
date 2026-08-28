@@ -9,15 +9,18 @@ description = "MCP-native memory trust/correction system — conflict resolution
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.7,<3",
-    "scikit-learn>=1.4,<2",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
 ]
 llm = [
     "requests>=2.31",
+]
+mcp = [
+    "fastmcp>=2.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -26,3 +29,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = ["data", ".venv", "*.egg-info", "build", "dist"]
+asyncio_mode = "auto"

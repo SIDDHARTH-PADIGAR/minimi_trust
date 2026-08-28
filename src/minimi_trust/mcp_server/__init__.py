@@ -1,0 +1,1 @@
+"""MCP server (M6, §4) — the four tools wired to the actual system components."""

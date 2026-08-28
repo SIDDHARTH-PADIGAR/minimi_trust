@@ -19,10 +19,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
 from minimi_trust.store.fact_store import FactStore
+from minimi_trust.textsim import tfidf_cosine_similarities
 
 DEFAULT_SIMILARITY_THRESHOLD = 0.3
 
@@ -54,18 +52,12 @@ class SemanticCandidateMatcher:
         if not other_keys:
             return []
 
-        corpus = [_key_text(subject, predicate)] + [_key_text(s, p) for s, p in other_keys]
-        vectorizer = TfidfVectorizer()
-        try:
-            matrix = vectorizer.fit_transform(corpus)
-        except ValueError:
-            # corpus was all-empty/stopword-only — nothing to match on
-            return []
-
-        similarities = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
+        query_text = _key_text(subject, predicate)
+        doc_texts = [_key_text(s, p) for s, p in other_keys]
+        similarities = tfidf_cosine_similarities(query_text, doc_texts)
 
         candidates = [
-            CandidateKey(subject=s, predicate=p, similarity=float(sim))
+            CandidateKey(subject=s, predicate=p, similarity=sim)
             for (s, p), sim in zip(other_keys, similarities)
             if sim >= self.threshold
         ]
