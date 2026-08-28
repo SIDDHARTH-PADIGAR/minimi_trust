@@ -15,6 +15,7 @@ This project builds a small, standalone system that does both correctly, proves 
 
 ## Architecture
 
+```mermaid
 flowchart TD
     A[Raw Text] -->|Extracted text| B[Extraction Service<br/>Out of scope]
 
@@ -22,7 +23,7 @@ flowchart TD
 
     subgraph C[CONTROL / MUTATION PLANE]
         C1[Fact Store<br/>Append-only<br/>Event-sourced SQLite]
-        C2[Conflict Detector<br/>Deterministic match first<br/>LLM only for flagged ambiguity]
+        C2[Conflict Detector<br/>Deterministic match first<br/>LLM only on flagged ambiguity]
         C3[Supersession Engine<br/>Marks current / superseded<br/>Never deletes rows]
         C4[Deletion + Verification Engine<br/>Cascade trace<br/>Residual-recovery check]
 
@@ -48,6 +49,7 @@ flowchart TD
         E3[verify_deletion]
         E4[explain_retrieval]
     end
+```
 
 
 **Governing principle:** two planes, one direction of dependency. The recall plane may *read* the control plane's current state; it never writes to it. All mutation happens only in the control plane, only through the four MCP tools, and every mutation is logged to an append-only event log.
