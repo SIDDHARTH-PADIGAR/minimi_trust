@@ -9,6 +9,11 @@ no LLM arbitration (M4).
 resolve_conflict() and resolve_facts() are split so M3 can hand this
 class a broader, similarity-matched fact list without duplicating or
 changing the resolution algorithm itself.
+
+M7: both public methods hold store.operation_lock for their full body,
+so a concurrent caller can't observe or mutate the same subject+predicate
+mid-resolution. RLock — safe to reenter from resolve_conflict into
+resolve_facts on the same thread.
 """
 
 from __future__ import annotations
@@ -37,64 +42,66 @@ class ConflictDetector:
         self.store = store
 
     def resolve_conflict(self, subject: str, predicate: str) -> ConflictResolution:
-        facts = self.store.get_facts(subject, predicate)
-        return self.resolve_facts(subject, predicate, facts)
+        with self.store.operation_lock:
+            facts = self.store.get_facts(subject, predicate)
+            return self.resolve_facts(subject, predicate, facts)
 
     def resolve_facts(self, subject: str, predicate: str, all_facts: list[Fact]) -> ConflictResolution:
-        active = [f for f in all_facts if f.status == FactStatus.ACTIVE]
+        with self.store.operation_lock:
+            active = [f for f in all_facts if f.status == FactStatus.ACTIVE]
 
-        if not active:
-            return ConflictResolution(
-                subject=subject, predicate=predicate, winning_fact=None,
-                resolution_method=ResolutionMethod.UNRESOLVED, unresolved=True,
-                version_history=all_facts, reason="no active facts found for subject+predicate",
-            )
+            if not active:
+                return ConflictResolution(
+                    subject=subject, predicate=predicate, winning_fact=None,
+                    resolution_method=ResolutionMethod.UNRESOLVED, unresolved=True,
+                    version_history=all_facts, reason="no active facts found for subject+predicate",
+                )
 
-        if len(active) == 1:
-            return ConflictResolution(
-                subject=subject, predicate=predicate, winning_fact=active[0],
-                resolution_method=ResolutionMethod.DETERMINISTIC, unresolved=False,
-                version_history=all_facts, reason="single active fact, no contention",
-            )
+            if len(active) == 1:
+                return ConflictResolution(
+                    subject=subject, predicate=predicate, winning_fact=active[0],
+                    resolution_method=ResolutionMethod.DETERMINISTIC, unresolved=False,
+                    version_history=all_facts, reason="single active fact, no contention",
+                )
 
-        distinct_objects = {f.object for f in active}
+            distinct_objects = {f.object for f in active}
 
-        if len(distinct_objects) == 1:
-            winner = max(active, key=lambda f: (f.observed_at, f.extracted_at, f.id))
+            if len(distinct_objects) == 1:
+                winner = max(active, key=lambda f: (f.observed_at, f.extracted_at, f.id))
+                losers = [f for f in active if f.id != winner.id]
+                self._consolidate(subject, predicate, winner, losers, reason="redundant_consolidation")
+                return ConflictResolution(
+                    subject=subject, predicate=predicate, winning_fact=winner,
+                    resolution_method=ResolutionMethod.DETERMINISTIC, unresolved=False,
+                    version_history=all_facts, newly_superseded_ids=[loser.id for loser in losers],
+                    reason="identical object across all active facts — consolidated, not a conflict",
+                )
+
+            max_observed_at = max(f.observed_at for f in active)
+            at_max = [f for f in active if f.observed_at == max_observed_at]
+            objects_at_max = {f.object for f in at_max}
+
+            if len(objects_at_max) > 1:
+                return ConflictResolution(
+                    subject=subject, predicate=predicate, winning_fact=None,
+                    resolution_method=ResolutionMethod.UNRESOLVED, unresolved=True,
+                    version_history=all_facts,
+                    reason=(
+                        f"{len(at_max)} facts share the newest observed_at "
+                        f"({max_observed_at.isoformat()}) with differing objects — genuinely ambiguous"
+                    ),
+                )
+
+            winner = at_max[0]
             losers = [f for f in active if f.id != winner.id]
-            self._consolidate(subject, predicate, winner, losers, reason="redundant_consolidation")
+            self._consolidate(subject, predicate, winner, losers, reason="newer_observed_at_wins")
+
             return ConflictResolution(
                 subject=subject, predicate=predicate, winning_fact=winner,
                 resolution_method=ResolutionMethod.DETERMINISTIC, unresolved=False,
                 version_history=all_facts, newly_superseded_ids=[loser.id for loser in losers],
-                reason="identical object across all active facts — consolidated, not a conflict",
+                reason="unique newest observed_at among differing objects",
             )
-
-        max_observed_at = max(f.observed_at for f in active)
-        at_max = [f for f in active if f.observed_at == max_observed_at]
-        objects_at_max = {f.object for f in at_max}
-
-        if len(objects_at_max) > 1:
-            return ConflictResolution(
-                subject=subject, predicate=predicate, winning_fact=None,
-                resolution_method=ResolutionMethod.UNRESOLVED, unresolved=True,
-                version_history=all_facts,
-                reason=(
-                    f"{len(at_max)} facts share the newest observed_at "
-                    f"({max_observed_at.isoformat()}) with differing objects — genuinely ambiguous"
-                ),
-            )
-
-        winner = at_max[0]
-        losers = [f for f in active if f.id != winner.id]
-        self._consolidate(subject, predicate, winner, losers, reason="newer_observed_at_wins")
-
-        return ConflictResolution(
-            subject=subject, predicate=predicate, winning_fact=winner,
-            resolution_method=ResolutionMethod.DETERMINISTIC, unresolved=False,
-            version_history=all_facts, newly_superseded_ids=[loser.id for loser in losers],
-            reason="unique newest observed_at among differing objects",
-        )
 
     def _consolidate(self, subject: str, predicate: str, winner: Fact, losers: list[Fact], reason: str) -> None:
         if not losers:

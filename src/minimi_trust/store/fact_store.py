@@ -6,15 +6,16 @@ a fact means flipping/redacting the row, not removing it. Every mutation
 is also written to the event_log table, which is the provenance backbone
 `explain_retrieval` reads from — not a separate audit bolt-on.
 
-Thread-safety (added M6): fastmcp runs each sync tool call in a worker
-threadpool — a different OS thread per call, not necessarily the one
-that created this store. sqlite3 connections are not safe to use from
-multiple threads without coordination, so check_same_thread=False (lets
-us use the connection cross-thread at all) is paired with a
-threading.Lock (actually serializes access) around every operation. A
-connection pool would also solve this but is real infrastructure this
-project doesn't need yet (§8) — a lock is proportionate to a small,
-single-process, local store.
+Thread-safety: check_same_thread=False + self._lock (M6) makes each
+individual statement safe from any thread. self.operation_lock (M7,
+RLock) is a SEPARATE, coarser lock that callers doing a multi-step
+mutation (e.g. ConflictDetector's consolidation, DeletionVerificationEngine's
+full delete+verify sequence) hold for the whole operation, so two
+concurrent logical operations on the same data can't interleave. This
+does not add crash-mid-operation rollback — each statement still commits
+individually; only concurrent-interleaving is addressed (see M7 design
+decisions), and only within a single process, per §1's stated
+single-node scope.
 """
 
 from __future__ import annotations
@@ -84,6 +85,9 @@ class FactStore:
         self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._lock = threading.Lock()
+        # Coarser lock (M7): held for the duration of a whole multi-step
+        # control-plane operation, not just one statement. See module docstring.
+        self.operation_lock = threading.RLock()
         with self._lock:
             self._conn.executescript(_SCHEMA)
             self._conn.commit()

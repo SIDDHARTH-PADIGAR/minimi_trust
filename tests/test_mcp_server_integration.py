@@ -11,13 +11,6 @@ import json
 import pytest
 from fastmcp import Client
 
-from minimi_trust.mcp_server.server import build_server
-
-
-@pytest.fixture
-def server():
-    return build_server(db_path=":memory:")
-
 
 def _payload(result) -> dict:
     """CallToolResult's structured .data is the primary path; falls back

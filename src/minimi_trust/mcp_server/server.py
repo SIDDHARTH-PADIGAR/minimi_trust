@@ -3,20 +3,22 @@ MCP Server (M6, §4).
 
 Wraps M4's conflict/correction path (TargetedLLMArbitrator, itself
 wrapping M2 deterministic + M3 semantic matching), M5's Deletion +
-Verification Engine, and the new minimal Recall/Explain layer, behind
-the four tools specified in §4. propose_correction and verify_deletion
-are the only tools that mutate the Fact Store; resolve_conflict's only
+Verification Engine, and the minimal Recall/Explain layer, behind the
+four tools specified in §4. propose_correction and verify_deletion are
+the only tools that mutate the Fact Store; resolve_conflict's only
 mutation is the supersession record already produced by the detectors
 it wraps; explain_retrieval never mutates anything.
 
-build_server() is a factory (not a bare module-level singleton) so
-tests can spin up an isolated in-memory instance without touching the
-real persistent database file.
+build_server_with_store() (M7) returns (mcp, store) so tests can seed
+custom data and inspect the store/event log after tool calls —
+build_server() wraps it and keeps its original signature/behavior for
+existing callers.
 """
 
 from __future__ import annotations
 
 import os
+from typing import Optional
 
 from fastmcp import FastMCP
 
@@ -40,9 +42,10 @@ def _fact_to_dict(fact: Fact) -> dict:
     }
 
 
-def build_server(db_path: str = DEFAULT_DB_PATH) -> FastMCP:
-    store = FactStore(db_path)
-    seed_demo_data_if_empty(store)
+def build_server_with_store(db_path: str = DEFAULT_DB_PATH, store: Optional[FactStore] = None) -> tuple[FastMCP, FactStore]:
+    if store is None:
+        store = FactStore(db_path)
+        seed_demo_data_if_empty(store)
 
     mcp = FastMCP("minimi-trust-layer")
 
@@ -110,6 +113,11 @@ def build_server(db_path: str = DEFAULT_DB_PATH) -> FastMCP:
         index = RecallIndex(store)
         return {"query": query, "results": index.search(query, top_k=top_k)}
 
+    return mcp, store
+
+
+def build_server(db_path: str = DEFAULT_DB_PATH) -> FastMCP:
+    mcp, _ = build_server_with_store(db_path)
     return mcp
 
 
