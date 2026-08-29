@@ -150,16 +150,26 @@ python -m minimi_trust.mcp_server.server
 ```
 
 ## Repository structure
-
+```text
 src/minimi_trust/
-├── schemas.py                  # Fact/Source/Proposal/Deletion data model (M0)
+├── schemas.py
+│   └── Fact/Source/Proposal/Deletion data model (M0)
 ├── store/
-│   └── fact_store.py            # Append-only, event-sourced Fact Store (M2, thread-safe M6/M7)
-├── conflict/                    # Deterministic (M2), semantic (M3), LLM arbitration (M4)
-├── deletion/                    # Deletion + cascade verification engine (M5)
-├── recall/                      # TF-IDF retrieval + Explain layer (M6)
-├── mcp_server/                  # The four MCP tools (M6)
-├── eval/                        # Baselines, per-milestone runners, unified run_all.py (M8)
+│   └── fact_store.py
+│       └── Append-only, event-sourced Fact Store (M2, thread-safe M6/M7)
+├── conflict/
+│   └── Deterministic (M2), semantic (M3), LLM arbitration (M4)
+├── deletion/
+│   └── Deletion + cascade verification engine (M5)
+├── recall/
+│   └── TF-IDF retrieval + Explain layer (M6)
+├── mcp_server/
+│   └── The four MCP tools (M6)
+├── eval/
+│   └── Baselines, per-milestone runners, unified run_all.py (M8)
 ├── data/
-│   └── track2_self_authored/    # Hand-built, labeled evaluation scenarios (§5)
-└── tests/                       # One regression suite per milestone, plus M7 hardening tests
+│   └── track2_self_authored/
+│       └── Hand-built, labeled evaluation scenarios (§5)
+└── tests/
+    └── One regression suite per milestone, plus M7 hardening tests
+```
